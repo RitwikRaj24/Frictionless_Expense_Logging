@@ -171,6 +171,17 @@ def HomeView(page):
         actions = [ft.TextButton("Save", on_click=save_settings_action)] # opens only on pressing the "gear" icon
     )
 
+    # --- Layout Assembly ---
+    quick_chips_row = ft.Row(
+        [
+            create_quick_chip(10, add_quick_amount), 
+            create_quick_chip(20, add_quick_amount), 
+            create_quick_chip(50, add_quick_amount), 
+            create_quick_chip(100, add_quick_amount)
+        ],
+        alignment=ft.MainAxisAlignment.CENTER
+    )    
+
     # Initial load 
     refresh_history()
 
