@@ -63,7 +63,7 @@ def add_to_db(amount, category):
     conn.commit()
     conn.close()
 
-def delete_transactions(id):
+def delete_transaction(id):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM transactions WHERE id=?", (id,))
