@@ -1,636 +1,309 @@
-# # import flet as ft
-
-# # def main(page: ft.Page):
-# #     # --- 1. APP SETTINGS ---
-# #     # We set the window size to look like a phone for testing
-# #     page.title = "IIT Dhanbad Expense Tracker"
-# #     page.window_width = 400
-# #     page.window_height = 700
-# #     page.vertical_alignment = ft.MainAxisAlignment.CENTER # Center everything vertically
-# #     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Center everything horizontally
-    
-# #     # --- 2. THE LOGIC (Brain) ---
-    
-# #     # This function runs when the user clicks "Yes" on the popup
-# #     def save_transaction(e):
-# #         # In Phase 2, we will write to the database here.
-# #         # For now, we just print to the terminal to prove it works.
-# #         print("SUCCESS: Transaction saved to database!")
-# #         page.close(confirm_dialog) # Close the popup
-
-# #     # This function runs when the user clicks a Category Button (Food/Stationary/Dorm)
-# #     def handle_payment(e):
-# #         user_amount = amount_field.value
-# #         category_name = e.control.text # Gets the text of the button clicked
-        
-# #         if not user_amount:
-# #             # Error handling: If box is empty, show a visual error
-# #             amount_field.error_text = "Please enter amount"
-# #             page.update()
-# #             return
-
-# #         # A. Mock the "Clipboard" action
-# #         print(f"--- ACTION ---")
-# #         print(f"1. Copied '₹{user_amount}' to Clipboard")
-        
-# #         # B. Mock the "Redirect" action
-# #         print(f"2. Launching Google Pay for Category: {category_name}")
-        
-# #         # C. Open the Confirmation Dialog
-# #         page.open(confirm_dialog)
-
-# #     # --- 3. THE UI ELEMENTS (Body) ---
-    
-# #     # The Input Field
-# #     amount_field = ft.TextField(
-# #         label="Amount (₹)", 
-# #         text_align=ft.TextAlign.CENTER, 
-# #         width=200,
-# #         keyboard_type=ft.KeyboardType.NUMBER
-# #     )
-
-# #     # The Buttons
-# #     # We use a helper function to make them look identical
-# #     def create_pay_button(text, color):
-# #         return ft.ElevatedButton(
-# #             text=text, 
-# #             width=200, 
-# #             height=50, 
-# #             bgcolor=color, 
-# #             color=ft.Colors.WHITE,
-# #             on_click=handle_payment # Connects the button to the logic function above
-# #         )
-
-# #     btn_food = create_pay_button("Food", ft.Colors.BLUE_400)
-# #     btn_stat = create_pay_button("Stationary", ft.Colors.ORANGE_400)
-# #     btn_dorm = create_pay_button("Dorm", ft.Colors.PURPLE_400)
-
-# #     # The Popup Dialog (Hidden by default)
-# #     confirm_dialog = ft.AlertDialog(
-# #         title=ft.Text("Payment Check"),
-# #         content=ft.Text("Did the payment go through successfully?"),
-# #         actions=[
-# #             ft.TextButton("Yes", on_click=save_transaction),
-# #             ft.TextButton("No", on_click=lambda e: page.close(confirm_dialog)),
-# #         ],
-# #     )
-
-# #     # --- 4. ASSEMBLE THE PAGE ---
-# #     page.add(
-# #         ft.Text("Expense Tracker", size=30, weight="bold"),
-# #         ft.Divider(height=20, color="transparent"), # Spacer
-# #         amount_field,
-# #         ft.Divider(height=20, color="transparent"), # Spacer
-# #         btn_food,
-# #         ft.Divider(height=10, color="transparent"), 
-# #         btn_stat,
-# #         ft.Divider(height=10, color="transparent"), 
-# #         btn_dorm,
-# #     )
-
-# # # Run the app
-# # ft.app(target=main)
-
-
-# # TESTING DONE : Works OK 
-
-# # Tasks at hand : 
-# # 1. Creating a database : Expenses are actually saved to a file
-# # 2. Activating the clipboard : Amount is copied automatically 
-# # 3. Preparing the launcher : Code to open GPay 
-
-
-# # # Rewriting code 
-# # import flet as ft
-# # import sqlite3
-# # import datetime 
-
-# # def main(page: ft.Page):
-# #     # --- 1. APP SETTINGS ---
-# #     # We set the window size to look like a phone for testing
-# #     page.title = "IIT Dhanbad Expense Tracker"
-# #     page.window_width = 400
-# #     page.window_height = 700
-# #     page.vertical_alignment = ft.MainAxisAlignment.CENTER # Center everything vertically
-# #     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Center everything horizontally
-    
-# #     # --- 2. BACKEND SETUP (Database) ---
-    
-# #     # Creating a simple function to connect to a local file 'expenses.db' 
-# #     def init_db(): # initialising database 
-# #         conn = sqlite3.connect("expenses.db")
-# #         cursor = conn.cursor()
-# #         # Create table if it does not exist 
-# #         cursor.execute("""
-# #             CREATE TABLE IF NOT EXISTS transactions (
-# #                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-# #                        amount REAL, 
-# #                        category TEXT, 
-# #                        date TEXT)
-# #         """)
-# #         conn.commit()
-# #         conn.close()
-
-# #     init_db() # initialising the DB immediately when the app starts
-    
-# #     # Function to save data to the DB 
-# #     def add_to_db(amount, category):
-# #         conn = sqlite3.connect("expenses.db")
-# #         cursor = conn.cursor()
-# #         current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-# #         cursor.execute("INSERT INTO transactions (amount, category, date) VALUES (?, ?, ?)", 
-# #                        (amount, category, current_date))
-        
-# #     # --- 3. STATE VARIABLES --- 
-# #     # For remembering what the user clicks while the popup 
-# #     # is open, create temporary memory slots
-
-# #     current_transactions = {"amount":0, "category":""}
-
-# #     # --- 4. THE LOGIC (Brain) --- 
-
-# #     def save_transactions(e):
-# #         # 1. Save to Database 
-# #         add_to_db(current_transactions["amount"], current_transactions["category"])
-
-# #         # 2. Close popup 
-# #         page.close(confirm_dialog)
-
-# #         # 3. Clear Input Field for the next time  
-# #         amount_field.value = ""
-# #         page.show_snack_bar(ft.SnackBar(content=ft.Text("Expense Saved!")))
-# #         page.update()
-
-# #     def handle_payment(e):
-# #         user_amount = amount_field.value 
-# #         category_name = e.control.text 
-
-# #         if not user_amount:
-# #             amount_field.error_text = "Please enter amount"
-# #             page.update()
-# #             return 
-        
-# #         current_transactions["amount"] = user_amount 
-# #         current_transactions["category"] = category_name
-
-# #         # --- REAL FEATURE 1 : CLIPBOARD --- 
-# #         page.set_clipboard(user_amount)
-# #         print(f"CLIPBOARD: Copied {user_amount}")
-
-# #         # --- REAL FEATURE 2: LAUNCHER ---
-# #         # Note: On a laptop, this might try to open a browser or do nothing.
-# #         # On Android, it will ask which app to use.
-# #         # We use a generic UPI string. Since we don't know the payee yet, 
-# #         # we are just triggering the phone's "Pay" intent.
-        
-# #         try:
-# #             # Trying to open the system's UPI handler
-# #             page.launch_url(f"upi://pay?am={user_amount}&cu=INR") 
-# #         except Exception as ex:
-# #             print(f"LAUNCH ERROR (Expected on Laptop): {ex}")
-        
-# #         # Open the Confirmation Dialog
-# #         page.open(confirm_dialog)
-
-# #     # --- 5. THE UI ELEMENTS (Body) ---
-    
-# #     amount_field = ft.TextField(
-# #         label="Amount (₹)", 
-# #         text_align=ft.TextAlign.CENTER, 
-# #         width=200,
-# #         keyboard_type=ft.KeyboardType.NUMBER
-# #     )
-
-# #     def create_pay_button(text, color):
-# #         return ft.ElevatedButton(
-# #             text=text, 
-# #             width=200, 
-# #             height=50, 
-# #             bgcolor=color, 
-# #             color=ft.Colors.WHITE,
-# #             on_click=handle_payment
-# #         )
-
-# #     btn_food = create_pay_button("Food", ft.Colors.BLUE_400)
-# #     btn_stat = create_pay_button("Stationary", ft.Colors.ORANGE_400)
-# #     btn_dorm = create_pay_button("Dorm", ft.Colors.PURPLE_400)
-
-# #     confirm_dialog = ft.AlertDialog(
-# #         title=ft.Text("Payment Check"),
-# #         content=ft.Text("Did the payment go through successfully?"),
-# #         actions=[
-# #             ft.TextButton("Yes", on_click=save_transaction),
-# #             ft.TextButton("No", on_click=lambda e: page.close(confirm_dialog)),
-# #         ],
-# #     )
-
-# #     page.add(
-# #         ft.Text("Expense Tracker", size=30, weight="bold"),
-# #         ft.Divider(height=20, color="transparent"),
-# #         amount_field,
-# #         ft.Divider(height=20, color="transparent"),
-# #         btn_food,
-# #         ft.Divider(height=10, color="transparent"),
-# #         btn_stat,
-# #         ft.Divider(height=10, color="transparent"),
-# #         btn_dorm,
-# #     )
-
-# # ft.app(target=main)    
-
-# import flet as ft
-# import sqlite3
-# import datetime
-
-# def main(page: ft.Page):
-#     # --- 1. APP SETTINGS ---
-#     page.title = "IIT Dhanbad Expense Tracker"
-#     page.window_width = 400
-#     page.window_height = 700
-#     page.vertical_alignment = ft.MainAxisAlignment.CENTER
-#     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-
-#     # --- 2. BACKEND SETUP (Database) ---
-#     # We create a simple function to connect to a local file 'expenses.db'
-#     def init_db():
-#         conn = sqlite3.connect("expenses.db")
-#         cursor = conn.cursor()
-#         # Create table if it doesn't exist
-#         cursor.execute("""
-#             CREATE TABLE IF NOT EXISTS transactions (
-#                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-#                 amount REAL,
-#                 category TEXT,
-#                 date TEXT
-#             )
-#         """)
-#         conn.commit()
-#         conn.close()
-
-#     # Initialize the DB immediately when app starts
-#     init_db()
-
-#     # Function to save data to the DB
-#     def add_to_db(amount, category):
-#         conn = sqlite3.connect("expenses.db")
-#         cursor = conn.cursor()
-#         current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-#         cursor.execute("INSERT INTO transactions (amount, category, date) VALUES (?, ?, ?)", 
-#                        (amount, category, current_date))
-#         conn.commit()
-#         conn.close()
-#         print(f"DATABASE: Saved ₹{amount} for {category} at {current_date}")
-
-#     # --- 3. STATE VARIABLES ---
-#     # We need to remember "What did the user just click?" while the popup is open
-#     # These are like temporary memory slots.
-#     current_transaction = {"amount": 0, "category": ""}
-
-#     # --- 4. THE LOGIC (Brain) ---
-    
-#     def save_transaction(e):
-#         # 1. Save to Database
-#         add_to_db(current_transaction["amount"], current_transaction["category"])
-        
-#         # 2. Close Popup
-#         page.close(confirm_dialog)
-        
-#         # 3. Clear Input Field for next time
-#         amount_field.value = ""
-#         page.show_snack_bar(ft.SnackBar(content=ft.Text("Expense Saved!")))
-#         page.update()
-
-#     def handle_payment(e):
-#         user_amount = amount_field.value
-#         category_name = e.control.text 
-        
-#         if not user_amount:
-#             amount_field.error_text = "Please enter amount"
-#             page.update()
-#             return
-
-#         # Save to temporary memory so we can log it later if they say "Yes"
-#         current_transaction["amount"] = user_amount
-#         current_transaction["category"] = category_name
-
-#         # --- REAL FEATURE 1: CLIPBOARD ---
-#         page.set_clipboard(user_amount)
-#         print(f"CLIPBOARD: Copied {user_amount}")
-
-#         # --- REAL FEATURE 2: LAUNCHER ---
-#         # Note: On a laptop, this might try to open a browser or do nothing.
-#         # On Android, it will ask which app to use.
-#         # We use a generic UPI string. Since we don't know the payee yet, 
-#         # we are just triggering the phone's "Pay" intent.
-        
-#         try:
-#             # Trying to open the system's UPI handler
-#             page.launch_url(f"upi://pay?am={user_amount}&cu=INR") 
-#         except Exception as ex:
-#             print(f"LAUNCH ERROR (Expected on Laptop): {ex}")
-        
-#         # Open the Confirmation Dialog
-#         page.open(confirm_dialog)
-
-#     # --- 5. THE UI ELEMENTS (Body) ---
-    
-#     amount_field = ft.TextField(
-#         label="Amount (₹)", 
-#         text_align=ft.TextAlign.CENTER, 
-#         width=200,
-#         keyboard_type=ft.KeyboardType.NUMBER
-#     )
-
-#     def create_pay_button(text, color):
-#         return ft.ElevatedButton(
-#             text=text, 
-#             width=200, 
-#             height=50, 
-#             bgcolor=color, 
-#             color=ft.Colors.WHITE,
-#             on_click=handle_payment
-#         )
-
-#     btn_food = create_pay_button("Food", ft.Colors.BLUE_400)
-#     btn_stat = create_pay_button("Stationary", ft.Colors.ORANGE_400)
-#     btn_dorm = create_pay_button("Dorm", ft.Colors.PURPLE_400)
-
-#     confirm_dialog = ft.AlertDialog(
-#         title=ft.Text("Payment Check"),
-#         content=ft.Text("Did the payment go through successfully?"),
-#         actions=[
-#             ft.TextButton("Yes", on_click=save_transaction),
-#             ft.TextButton("No", on_click=lambda e: page.close(confirm_dialog)),
-#         ],
-#     )
-
-#     page.add(
-#         ft.Text("Expense Tracker", size=30, weight="bold"),
-#         ft.Divider(height=20, color="transparent"),
-#         amount_field,
-#         ft.Divider(height=20, color="transparent"),
-#         btn_food,
-#         ft.Divider(height=10, color="transparent"),
-#         btn_stat,
-#         ft.Divider(height=10, color="transparent"),
-#         btn_dorm,
-#     )
-
-# ft.app(target=main)
-
-## now have a working "Backend" (Database) and "Logic Layer" (Clipboard/Redirect).
-
-
 import flet as ft
 import sqlite3
 import datetime
-import calendar
+import database as db
 
 def main(page: ft.Page):
     # --- 1. APP SETTINGS ---
     page.title = "IIT Dhanbad Expense Tracker"
     page.window_width = 400
-    page.window_height = 750
-    page.theme_mode = ft.ThemeMode.LIGHT # Force light mode for better colors
+    page.window_height = 800
+    page.theme_mode = ft.ThemeMode.DARK
+    page.bgcolor = "#121212"
+    page.padding = 0  # Remove default padding to allow full-screen views
 
-    # --- 2. BACKEND & LOGIC ---
     
-    # HARDCODED BUDGETS (For the MVP)
-    # In the future, we can let the user edit these
-    TOTAL_BUDGET = 5000 
+    db.init_db()
+
     
-    def init_db():
-        conn = sqlite3.connect("expenses.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS transactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                amount REAL,
-                category TEXT,
-                date TEXT
-            )
-        """)
-        conn.commit()
-        conn.close()
+    
+    # --- 3. UI STATE MANAGEMENT ---
+    
+    # We will swap between these two main containers
+    home_view = ft.Container(visible=True)
+    payment_view = ft.Container(visible=False)
 
-    init_db()
+    # --- 4. VIEW 1: HOME DASHBOARD ---
 
-    def add_to_db(amount, category):
-        conn = sqlite3.connect("expenses.db")
-        cursor = conn.cursor()
-        current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("INSERT INTO transactions (amount, category, date) VALUES (?, ?, ?)", 
-                       (amount, category, current_date))
-        conn.commit()
-        conn.close()
+    # Components for Home
+    header_section = ft.Container(
+        padding=20,
+        content=ft.Row(
+            [
+                ft.Column([
+                    ft.Text("Hello,", size=16, color=ft.Colors.GREY_400),
+                    ft.Text("Harsh Suri", size=28, weight="bold", color="white")
+                ], spacing=2),
+                ft.CircleAvatar(
+                    foreground_image_src="E:\App\WIN_20251104_13_13_29_Pro.jpg",
+                    radius=25
+                )
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+        )
+    )
 
-    # --- NEW: ANALYTICS ENGINE ---
-    def get_dashboard_data():
-        """Reads DB and calculates stats for the 'Power BI' Dashboard"""
-        conn = sqlite3.connect("expenses.db")
-        cursor = conn.cursor()
-        
-        # Query 1: Total Spent
-        cursor.execute("SELECT SUM(amount) FROM transactions")
-        result = cursor.fetchone()[0]
-        total_spent = result if result else 0 # Handle case where DB is empty
-        
-        # Query 2: Category Breakdown
-        cursor.execute("SELECT category, SUM(amount) FROM transactions GROUP BY category")
-        breakdown = cursor.fetchall() # Returns list like [('Food', 150), ('Dorm', 500)]
-        
-        conn.close()
-        
-        # LOGIC: The Pacing Calculation
-        # 1. How much time has passed?
-        today = datetime.date.today()
-        # Get total days in current month (e.g., 30 or 31)
-        days_in_month = calendar.monthrange(today.year, today.month)[1]
-        time_passed_pct = today.day / days_in_month
-        
-        # 2. How much budget is spent?
-        budget_spent_pct = total_spent / TOTAL_BUDGET
-        
-        # 3. The Pacing Score (The "Red/Green" Logic)
-        # Avoid division by zero if it's the 1st of the month
-        pacing_score = budget_spent_pct / time_passed_pct if time_passed_pct > 0 else 0
-        
-        return total_spent, breakdown, pacing_score, budget_spent_pct
+    overview_container = ft.Column(scroll=ft.ScrollMode.HIDDEN)
+    history_container = ft.Column(scroll=ft.ScrollMode.AUTO, visible=False)
 
-    # --- 3. UI COMPONENTS (The Views) ---
-
-    # -- VIEW A: HOME (Input) --
-    amount_field = ft.TextField(label="Amount (₹)", text_align=ft.TextAlign.CENTER, width=200, keyboard_type=ft.KeyboardType.NUMBER)
-    current_transaction = {"amount": 0, "category": ""}
-
-    def save_transaction(e):
-        add_to_db(current_transaction["amount"], current_transaction["category"])
-        page.close(confirm_dialog)
-        amount_field.value = ""
-        page.show_snack_bar(ft.SnackBar(content=ft.Text("Saved! Check Stats tab.")))
+    def toggle_home_tabs(view_name):
+        if view_name == "overview":
+            overview_container.visible = True
+            history_container.visible = False
+            btn_overview.bgcolor = "blue"
+            btn_history.bgcolor = None
+        else:
+            overview_container.visible = False
+            history_container.visible = True
+            btn_overview.bgcolor = None
+            btn_history.bgcolor = "blue"
         page.update()
 
-    def handle_payment(e):
-        user_amount = amount_field.value
-        category_name = e.control.text 
-        if not user_amount:
-            amount_field.error_text = "Required"
+    btn_overview = ft.Container(
+        content=ft.Text("Overview", weight="bold"),
+        bgcolor="blue", padding=ft.padding.symmetric(10, 20), border_radius=20,
+        on_click=lambda e: toggle_home_tabs("overview")
+    )
+    btn_history = ft.Container(
+        content=ft.Text("Expense History", weight="bold"),
+        bgcolor=None, padding=ft.padding.symmetric(10, 20), border_radius=20,
+        on_click=lambda e: toggle_home_tabs("history")
+    )
+    
+    # Assembly of Home View
+    home_view.content = ft.Column([
+        header_section,
+        ft.Container(height=10),
+        ft.Row([btn_overview, btn_history], alignment=ft.MainAxisAlignment.CENTER),
+        ft.Container(height=20),
+        ft.Container(
+            padding=20,
+            expand=True,
+            content=ft.Column([overview_container, history_container], expand=True)
+        )
+    ], expand=True)
+
+
+    # --- 5. VIEW 2: PAYMENT SCREEN (The New UI) ---
+
+    # Input Fields for Payment Screen
+    pay_amount_field = ft.TextField(
+        label="Amount", 
+        bgcolor="#2C2C2C", 
+        border_color="#2C2C2C",
+        color="white",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        border_radius=10,
+        height=60
+    )
+    
+    pay_account_dropdown = ft.Dropdown(
+        label="Account",
+        bgcolor="#2C2C2C",
+        border_color="#2C2C2C",
+        color="white",
+        border_radius=10,
+        
+    )
+
+    def close_payment_view(e):
+        # Clear fields and go back
+        pay_amount_field.value = ""
+        payment_view.visible = False
+        home_view.visible = True
+        page.update()
+
+    def submit_payment(e):
+        if not pay_amount_field.value:
+            pay_amount_field.error_text = "Enter amount"
             page.update()
             return
         
-        current_transaction["amount"] = user_amount
-        current_transaction["category"] = category_name
-        page.set_clipboard(user_amount)
+        category = pay_account_dropdown.value
+        amount = pay_amount_field.value
         
-        # Attempt Deep Link (Will fail gracefully on laptop)
-        try:
-            page.launch_url(f"upi://pay?am={user_amount}&cu=INR")
-        except:
-            pass # Ignore errors on laptop
+        db.add_to_db(amount, category)
+        
+        # Success and Return
+        page.show_snack_bar(ft.SnackBar(content=ft.Text(f"Paid ₹{amount} for {category}")))
+        refresh_home_data()
+        close_payment_view(None)
+
+    # The "Bahaut Bada QR Scanner" Box
+    scanner_box = ft.Container(
+        bgcolor=ft.Colors.GREY_400, # Light grey to match image
+        height=300,
+        width=300,
+        border_radius=0, # Rectangle as per image
+        alignment=ft.alignment.center,
+        content=ft.Column([
+            ft.Icon(ft.Icons.QR_CODE_SCANNER, size=50, color="black"),
+            ft.Text("Scan QR Code", color="black", weight="bold")
+        ], alignment="center", horizontal_alignment="center")
+    )
+
+    payment_view.content = ft.Container(
+        bgcolor="#121212",
+        padding=30,
+        content=ft.Column([
+            # Back Button
+            ft.Row([
+                ft.IconButton(icon=ft.Icons.ARROW_BACK, icon_color="white", on_click=close_payment_view),
+                ft.Container(expand=True)
+            ]),
             
-        page.open(confirm_dialog)
-
-    confirm_dialog = ft.AlertDialog(
-        title=ft.Text("Confirm"),
-        content=ft.Text("Payment successful?"),
-        actions=[
-            ft.TextButton("Yes", on_click=save_transaction),
-            ft.TextButton("No", on_click=lambda e: page.close(confirm_dialog)),
-        ],
-    )
-
-    def create_pay_button(text, color):
-        return ft.ElevatedButton(text=text, width=200, height=50, bgcolor=color, color=ft.Colors.WHITE, on_click=handle_payment)
-
-    home_view = ft.Column(
-        [
-            ft.Container(height=50), # Spacer
-            ft.Text("Quick Pay", size=30, weight="bold"),
-            ft.Divider(height=20, color="transparent"),
-            amount_field,
-            ft.Divider(height=20, color="transparent"),
-            create_pay_button("Food", ft.Colors.BLUE_400),
-            ft.Divider(height=10, color="transparent"),
-            create_pay_button("Stationary", ft.Colors.ORANGE_400),
-            ft.Divider(height=10, color="transparent"),
-            create_pay_button("Dorm", ft.Colors.PURPLE_400),
-        ],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-    )
-
-    # -- VIEW B: STATS (Dashboard) --
-    # We define the dashboard elements here, but we will UPDATE them dynamically
-    
-    txt_total_spent = ft.Text("₹0", size=40, weight="bold")
-    txt_pacing_status = ft.Text("Calculating...", size=16)
-    
-    # The "Red/Green" Bar
-    pacing_bar = ft.ProgressBar(width=300, height=20, color=ft.Colors.GREY, bgcolor=ft.Colors.GREY_200)
-    
-    # The Pie Chart Container (Starts empty)
-    chart_container = ft.Column()
-
-    stats_view = ft.Column(
-        [
+            ft.Text("Make\nPayment", size=35, weight="bold", color="white", text_align="center"),
+            
             ft.Container(height=30),
-            ft.Text("Monthly Dashboard", size=25, weight="bold"),
-            ft.Divider(),
-            ft.Text("Total Spent"),
-            txt_total_spent,
-            ft.Divider(height=20, color="transparent"),
             
-            ft.Text("Budget Pacing (Health)"),
-            pacing_bar,
-            txt_pacing_status,
+            # 1. The Scanner
+            ft.Container(
+                content=scanner_box,
+                alignment=ft.alignment.center
+            ),
             
-            ft.Divider(height=30, color="transparent"),
-            ft.Text("Category Breakdown"),
-            chart_container, 
-        ],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        scroll=ft.ScrollMode.AUTO # Allow scrolling if content is long
+            ft.Container(height=30),
+            
+            # 2. Account Selection
+            ft.Text("Selected Account :", size=16, weight="bold", color="white"),
+            ft.Container(height=5),
+            pay_account_dropdown,
+            
+            ft.Container(height=15),
+            
+            # 3. Amount Entry
+            ft.Text("Enter Amount :", size=16, weight="bold", color="white"),
+            ft.Container(height=5),
+            pay_amount_field,
+            
+            ft.Container(height=30),
+            
+            # 4. Pay Button
+            ft.ElevatedButton(
+                text="PAY",
+                bgcolor="blue",
+                color="white",
+                width=300,
+                height=55,
+                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=30)),
+                on_click=submit_payment
+            )
+
+        ], horizontal_alignment="center", scroll=ft.ScrollMode.AUTO)
     )
 
-    # --- 4. NAVIGATION LOGIC ---
-    
-    def refresh_stats():
-        """Runs every time you click the 'Stats' tab"""
-        spent, breakdown, pacing, budget_pct = get_dashboard_data()
-        
-        # 1. Update Total
-        txt_total_spent.value = f"₹{spent:.0f} / ₹{TOTAL_BUDGET}"
-        
-        # 2. Update Pacing Bar
-        # Logic: If Pacing > 1.0 (Spending too fast) -> RED. Else -> GREEN.
-        pacing_bar.value = min(budget_pct, 1.0) # Bar maxes out at 100%
-        if pacing > 1.1: # 10% buffer
-            pacing_bar.color = ft.Colors.RED_400
-            txt_pacing_status.value = f"⚠️ CRITICAL: You are spending {pacing:.1f}x faster than time!"
-            txt_pacing_status.color = ft.Colors.RED_400
-        else:
-            pacing_bar.color = ft.Colors.GREEN_400
-            txt_pacing_status.value = "✅ ON TRACK: Your spending is healthy."
-            txt_pacing_status.color = ft.Colors.GREEN_700
+    # --- 6. NAVIGATION LOGIC ---
 
-        # 3. Update Pie Chart
-        # We dynamically build the chart sections based on DB data
-        sections = []
-        colors = [ft.Colors.BLUE_400, ft.Colors.ORANGE_400, ft.Colors.PURPLE_400, ft.Colors.GREEN_400]
+    def open_payment_view(category_name=None):
+        # Refresh categories in dropdown
+        cats = db.get_categories()
+        pay_account_dropdown.options = [ft.dropdown.Option(c) for c in cats.keys()]
         
-        for i, item in enumerate(breakdown):
-            cat_name = item[0]
-            cat_amount = item[1]
-            sections.append(
-                ft.PieChartSection(
-                    value=cat_amount,
-                    title=f"{cat_name}\n{cat_amount:.0f}",
-                    color=colors[i % len(colors)], # Cycle through colors
-                    radius=50,
-                    title_style=ft.TextStyle(size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)
-                )
-            )
-        
-        # Replace the old chart with the new one
-        chart_container.controls = [
-            ft.PieChart(sections=sections, sections_space=2, center_space_radius=40, height=200)
-        ]
+        # Pre-select the clicked category
+        if category_name:
+            pay_account_dropdown.value = category_name
+        else:
+            pay_account_dropdown.value = list(cats.keys())[0]
+
+        # Switch Views
+        home_view.visible = False
+        payment_view.visible = True
         page.update()
 
-    def on_tab_change(e):
-        # If user clicked "Stats" (Index 1), refresh the data
-        if e.control.selected_index == 1:
-            refresh_stats()
+    # --- 7. HOME COMPONENT BUILDERS ---
 
-    # The Tabs Layout
-    t = ft.Tabs(
-        selected_index=0,
-        animation_duration=300,
-        on_change=on_tab_change,
-        tabs=[
-            ft.Tab(text="Pay", icon=ft.Icons.PAYMENT, content=home_view),
-            ft.Tab(text="Stats", icon=ft.Icons.BAR_CHART, content=stats_view),
-        ],
-        expand=1,
+    def create_category_card(name, spent, limit, color, icon_name):
+        pct = spent / limit if limit > 0 else 0
+        return ft.Container(
+            bgcolor="#1E1E1E", border_radius=15, padding=15,
+            content=ft.Column([
+                ft.Row([
+                    ft.Row([
+                        ft.Icon(icon_name, color=color),
+                        ft.Text(name, size=16, weight="bold")
+                    ]),
+                    # THE "+" BUTTON -> Opens Payment View
+                    ft.IconButton(
+                        icon=ft.Icons.ADD, bgcolor="blue", icon_color="white",
+                        width=30, height=30, icon_size=16,
+                        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                        on_click=lambda e: open_payment_view(name) 
+                    )
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Container(height=5),
+                ft.Row([
+                    ft.Text(f"₹{spent:,.0f}", size=22, weight="bold"),
+                    ft.Text(f"/ ₹{limit:,.0f}", size=14, color=ft.Colors.GREY)
+                ]),
+                ft.ProgressBar(value=min(pct, 1), color=color, bgcolor="#333333", bar_height=5)
+            ])
+        )
+
+    def refresh_home_data():
+        categories = db.get_categories()
+        total_spent, category_spent, history_list = db.get_data_for_ui()
+        
+        total_budget = sum(c['budget'] for c in categories.values())
+        available = total_budget - total_spent
+        available_pct = available / total_budget if total_budget > 0 else 0
+        
+        # Update Overview
+        overview_container.controls = [
+            ft.Container(
+                bgcolor="#1E1E1E", padding=20, border_radius=15,
+                content=ft.Column([
+                    ft.Text("Available Balance", size=15),
+                    ft.Row([
+                        ft.Text(f"₹{available:,.0f}", size=30, weight="bold", color="white"),
+                        ft.Text(f"/₹{total_budget:,.0f}", color="grey")
+                    ]),
+                    ft.ProgressBar(value=available_pct, color="orange", bgcolor="#333333", bar_height=6)
+                ])
+            ),
+            ft.Container(height=10),
+        ]
+        
+        for cat_name, data in categories.items():
+            spent = category_spent.get(cat_name, 0)
+            card = create_category_card(cat_name, spent, data['budget'], data['color'], data['icon'])
+            overview_container.controls.append(card)
+            overview_container.controls.append(ft.Container(height=10))
+
+        # Update History
+        history_container.controls = []
+        for item in history_list:
+            cat_name = item[0]
+            amount = item[1]
+            date = item[2]
+            cat_data = categories.get(cat_name, {"color": "grey", "icon": ft.Icons.QUESTION_MARK})
+            
+            tile = ft.Container(
+                bgcolor="#1E1E1E", padding=15, border_radius=15, margin=ft.margin.only(bottom=10),
+                content=ft.Row([
+                    ft.Row([
+                        ft.Container(content=ft.Icon(cat_data['icon'], color=cat_data['color']), bgcolor="#2C2C2C", padding=10, border_radius=10),
+                        ft.Column([ft.Text(cat_name, weight="bold", size=16), ft.Text(f"Date: {date}", size=12, color="grey")], spacing=2)
+                    ]),
+                    ft.Text(f"-₹{amount:,.0f}", size=18, weight="bold")
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            )
+            history_container.controls.append(tile)
+        
+        page.update()
+
+    # --- 8. INITIALIZATION ---
+    
+    # We use a Stack to layer the views (Home at back, Payment at front)
+    page.add(
+        ft.Stack(
+            [
+                home_view,
+                payment_view
+            ],
+            expand=True
+        )
     )
 
-    page.add(t)
+    refresh_home_data()
 
 ft.app(target=main)
-
-# A "student budget" app doesn't have to look cheap. We will upgrade the UI to use Cards, Shadows, Icons, and a Modern Color Palette.
-
-# We are also adding a highly requested feature: Recent History.
-# You will now see a list of your last 5 transactions right on the Home 
-# screen, so you know exactly what you just logged.
-# The "Fintech" Upgrade (Code)
-# Replace your main.py with this polished version.
-
-# Key Visual Changes:
-
-# Modern Header: A blue container with rounded corners at the top.
-# Cards: The buttons are now "Action Cards" with icons.
-# History List: A scrollable list showing your recent spending.
-# Dashboard Polish: The stats are now enclosed in "Data Cards" with shadows.
-

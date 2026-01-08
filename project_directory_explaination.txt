@@ -1,0 +1,13 @@
+main.py -> Entry point (for running the app)
+config.py -> Colors, Settings, Constants 
+database.py -> Pure backend (SQL logic only)
+
+components -> Reusuable UI widgets
+    cards.py -> Card containers 
+    buttons.py -> Chip buttons, Category buttons 
+
+views 
+    home_view.py -> The logic for the home tab 
+    stats_view.py -> The logic for the Dashboard tab 
+
+    
