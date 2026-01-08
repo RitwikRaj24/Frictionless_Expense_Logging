@@ -171,7 +171,52 @@ def HomeView(page):
         actions = [ft.TextButton("Save", on_click=save_settings_action)] # opens only on pressing the "gear" icon
     )
 
-# Initial load 
+    # Initial load 
+    refresh_history()
+
+    # Architect Code 
+    # No maths or database connections, just aligning all the buttons, inputs and lists 
+    # vertically on the screen
+
+    # returns a single ft.Column (i.e. a vertical stack) containing 4 distinct visual sections
+    return ft.Column(
+        [
+            # Header
+            ft.Container(
+                content=ft.Row([
+                    ft.Column([ft.Text("Good Evening,", color=ft.Colors.WHITE70, size=14), ft.Text("Student", color=ft.Colors.WHITE, size=24, weight="bold")]),
+                    ft.IconButton(ft.Icons.SETTINGS, icon_color="white", on_click=lambda e: page.open(settings_dialog))
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                width=400, height=120, bgcolor=PRIMARY_COLOR, padding=ft.padding.only(left=20, right=10, top=40, bottom=20),
+                border_radius=ft.border_radius.only(bottom_left=30, bottom_right=30)
+            ),
+            ft.Container(height=20),
+            
+            # Input
+            create_card(ft.Column([
+                ft.Text("How much?", color="grey", size=12),
+                amount_field,
+                ft.Container(height=10),
+                quick_chips_row
+            ], horizontal_alignment=ft.MainAxisAlignment.CENTER)),
+
+            ft.Container(height=20),
+            
+            # Categories
+            ft.Row([
+                create_category_button("Food", ft.Icons.FASTFOOD, ft.Colors.BLUE, handle_payment),
+                create_category_button("Stationary", ft.Icons.EDIT, ft.Colors.ORANGE, handle_payment),
+                create_category_button("Dorm", ft.Icons.BED, ft.Colors.PURPLE, handle_payment),
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=15),
+            
+            ft.Container(height=30),
+            
+            # History
+            ft.Container(content=ft.Column([ft.Text("Recent Transactions", weight="bold", size=16, color=PRIMARY_COLOR), history_column]), padding=20)
+        ],
+        scroll=ft.ScrollMode.AUTO, spacing=0
+    )
+
 
 
 
