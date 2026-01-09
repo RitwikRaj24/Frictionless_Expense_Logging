@@ -16,7 +16,8 @@ def HomeView(page):
     # 1. User input(amount_field) 2. Placeholder for the List 3. Memory box for tracking what the user is doing 
 
     amount_field = ft.TextField(
-        label = "Enter Amount", prefix_text="₹ ", text_style=ft.TextStyle(size=20, weight="bold"),
+        # label = "Enter Amount", prefix_text="₹ ", text_style=ft.TextStyle(size=20, weight="bold"),
+        label = "Enter Amount", prefix=ft.Text("₹ "), text_style=ft.TextStyle(size=20, weight="bold"),
         border_color="transparent", bgcolor=ft.Colors.GREY_100, text_align=ft.TextAlign.CENTER, 
         keyboard_type=ft.KeyboardType.NUMBER, border_radius=10
     )
@@ -117,7 +118,7 @@ def HomeView(page):
         state["current_amount"] = user_amount 
         state["current_category"] = e.control.data 
 
-        page.set_clipboard(user_amount)
+        # page.set_clipboard(user_amount)
         try:
             page.launch_url(f"upi://pay?am={user_amount}&cu=INR")
             # (IMP) USP : Copies the user amount to the clipboard, if the app does'nt auto-fill
