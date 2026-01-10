@@ -16,13 +16,11 @@ def HomeView(page):
     # 1. User input(amount_field) 2. Placeholder for the List 3. Memory box for tracking what the user is doing 
 
     amount_field = ft.TextField(
-        # label = "Enter Amount", prefix_text="₹ ", text_style=ft.TextStyle(size=20, weight="bold"),
-        label = "Enter Amount", prefix=ft.Text("₹ "), text_style=ft.TextStyle(size=20, weight="bold"),
+        label = "Enter Amount", prefix_text="₹ ", text_style=ft.TextStyle(size=20, weight="bold"),
+        # label = "Enter Amount", prefix=ft.Text("₹ "), text_style=ft.TextStyle(size=20, weight="bold"),
         border_color="transparent", bgcolor=ft.Colors.GREY_100, text_align=ft.TextAlign.CENTER, 
         keyboard_type=ft.KeyboardType.NUMBER, border_radius=10
-    )
-
-    # keyboard_type = ft.KeyboardType.NUMBER is critical for mobile apps for the numerical keyboard to pop up automatically 
+    ) # keyboard_type = ft.KeyboardType.NUMBER is critical for mobile apps for the numerical keyboard to pop up automatically 
     
     history_column = ft.Column(spacing=0)
     # For injecting the rows of "Recent Transactions" from the database DYNAMICALLY 
@@ -228,7 +226,3 @@ def HomeView(page):
         ],
         scroll=ft.ScrollMode.AUTO, spacing=0
     )
-
-
-
-

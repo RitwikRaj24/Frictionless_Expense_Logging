@@ -1,14 +1,20 @@
-# Database logic (No UI)  
+# database.py
+# Database logic (No UI)
 
-# The Foundation Files. These don't depend on anything else.
+import sqlite3
+import datetime
+import calendar
+from config import DB_NAME, DEFAULT_BUDGET
 
-import sqlite3 
-import datetime 
-import calendar 
-from config import DB_NAME, DEFAULT_BUDGET 
+# --- HELPER: Centralized Connection ---
+def get_connection():
+    # check_same_thread = False is REQUIRED for Flet apps to prevent crashes
+    # Why? By default, SQLite creates a "lock" that prevents other threads from 
+    # using the connection, which will cause your app to crash with a ProgrammingError if you click buttons too fast.
+    return sqlite3.connect(DB_NAME, check_same_thread=False)
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED: Uses helper
     cursor = conn.cursor()
     cursor.execute(""" 
         CREATE TABLE IF NOT EXISTS transactions (
@@ -34,16 +40,16 @@ def init_db():
     conn.close() 
 
 def get_budget():
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()
     cursor.execute("SELECT value FROM settings WHERE key='budget'")
-    # 
+    
     val = cursor.fetchone()[0]
     conn.close() 
     return float(val)
 
 def set_budget(new_budget):
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()    
     cursor.execute("UPDATE settings SET value=? WHERE key='budget'", (str(new_budget),))
     conn.commit()
@@ -51,8 +57,7 @@ def set_budget(new_budget):
 
 def add_to_db(amount, category):
     # Captures the exact moment the transaction is recorded 
-
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()
     current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute("INSERT INTO transactions (amount, category, date) VALUES (?, ?, ?)", (amount, category, current_date))
@@ -64,7 +69,7 @@ def add_to_db(amount, category):
     conn.close()
 
 def delete_transaction(id):
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()
     cursor.execute("DELETE FROM transactions WHERE id=?", (id,))
     conn.commit()
@@ -72,18 +77,16 @@ def delete_transaction(id):
 
 def get_recent_transactions():
     # For getting the recent history dashboard 
-
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()
     cursor.execute("SELECT id, category, amount, date FROM transactions ORDER BY id DESC LIMIT 5")
     # ORDER BY id DESC LIMIT 5 will sort by id in descending order and limit results to 5
     rows = cursor.fetchall()
-    conn.commit()
     conn.close() 
     return rows 
 
 def get_dashboard_data(): 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_connection() # <--- FIXED
     cursor = conn.cursor()
 
     # 1. Total Spent 
@@ -108,4 +111,3 @@ def get_dashboard_data():
     pacing_score = budget_spent_pct / time_passed_pct if time_passed_pct > 0 else 0 
 
     return total_spent, breakdown, pacing_score, budget_spent_pct, current_budget
-
