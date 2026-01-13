@@ -21,7 +21,8 @@ def create_category_button(text, icon, color, on_click):
             border_radius=15,
             on_click=on_click, # ensures the function runs when clicked
             data=text, # IMP : after on_click, tells which category was clicked, stores the category name, later retrieved using "e.control.data"
-            shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+            # shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+            shadow=ft.BoxShadow(blur_radius=5, color=ft.Colors.BLACK12),
             ink=True # Enables the ripple effect
         )
 
